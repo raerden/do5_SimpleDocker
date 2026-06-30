@@ -45,6 +45,8 @@
 
 ![docker stop](./images/part1/4.png)
 
+**Просмотреть mapped порты**
+`docker port [container_id|container_name]`
 
 ### Проверь, что в браузере по адресу localhost:80 доступна стартовая страница nginx.
 ![docker stop](./images/part1/5.png)
