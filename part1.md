@@ -73,7 +73,7 @@
 
 **Присоединиться к работающему контейнеру** \
 `docker attach [container_id|container_name]` \
-`ctrl+p` или `ctrl+q` - остоединиться от контейнера
+`ctrl+p` или `ctrl+q` - остоединиться от контейнера не останавливая его
 
 **Запуск ранее созданного контейнера** \
 `docker start [container_id|container_name]`

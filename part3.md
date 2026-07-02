@@ -1,7 +1,7 @@
 # Part 3. Мини веб-сервер
 
 **мини-сервер на C и FastCgi** \
-`#include <stdio.h>
+```#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcgi_stdio.h>
@@ -15,7 +15,7 @@ int main() {
         printf("Hello, World!\n");
     }
     return 0;
-}`
+}```
 
 **Скомпилировать сервер** \
 `gcc server.c -o server -lfcgi`
@@ -32,7 +32,7 @@ int main() {
 
 
 **Создать server/nginx.conf** \
-`events {
+```events {
     worker_connections 1024;
 }
 
@@ -46,7 +46,7 @@ http {
             fastcgi_pass 127.0.0.1:8080;
         }
     }
-}`
+}```
 
 
 **Проверить и запустить локальный nginx** \
