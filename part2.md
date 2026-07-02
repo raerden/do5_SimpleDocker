@@ -10,10 +10,10 @@
 
 ![docker cp](./images/part2/2.png)
 
-**Скопируй созданный файл nginx.conf внутрь докер-контейнера**
+**Скопируй созданный файл nginx.conf внутрь докер-контейнера** \
 `docker cp nginx.conf nginx-mapped:/etc/nginx/nginx.conf`
 
-**Перезапусти nginx внутри докер-контейнера**
+**Перезапусти nginx внутри докер-контейнера** \
 `docker exec nginx-mapped nginx -s reload`
 
 ![docker exec](./images/part2/3.png)
@@ -42,13 +42,13 @@
 ![docker export](./images/part2/6.png)
 
 
-**Создать образ из файла container.tar через команду import**
+**Создать образ из файла container.tar через команду import** \
 `docker import container.tar nginx-imported:latest` \
 latest - тег контейнера. Можно указывать версию.
 
-**Создасть и запустить контейнер на основе импортированного образа**
+**Создасть и запустить контейнер на основе импортированного образа** \
 `docker run -d --name nginx-imported -p 80:80 nginx-imported:latest  nginx -g "daemon off;"`\
-nginx -g "daemon off;" - запрещает уходить nginx в фон, а оставаться на переднем плане. Иначе докер остановит контейнер без работающих процессов \
+nginx -g "daemon off;" - запрещает уходить nginx в фон, а оставаться на переднем плане. Иначе докер остановит контейнер без работающих процессов 
 
 ![docker import](./images/part2/7.png)
 

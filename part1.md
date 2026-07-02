@@ -45,13 +45,13 @@
 
 ![docker stop](./images/part1/4.png)
 
-**Просмотреть mapped порты**
+**Просмотреть mapped порты** \
 `docker port [container_id|container_name]`
 
 ### Проверь, что в браузере по адресу localhost:80 доступна стартовая страница nginx.
 ![docker stop](./images/part1/5.png)
 
-**Перезапуск контейнера**
+**Перезапуск контейнера** \
 `docker restart [container_id|container_name]`
 
 ![docker stop](./images/part1/6.png)
@@ -62,11 +62,18 @@
 **Дать контейнеру свое имя** \
 `docker run -d --name my-nginx nginx`
 
-**Просмотреть все контейнеры, даже остановленные**
+**Просмотреть все контейнеры, даже остановленные** \
 `docker ps -a`
 
-**удалить остановленный контейнер**
+**удалить остановленный контейнер** \
 `docker rm nginx-mapped`
 
-**удалить все остановленные контейнеры**
+**удалить все остановленные контейнеры** \
 `docker container prune`
+
+**Присоединиться к работающему контейнеру** \
+`docker attach [container_id|container_name]` \
+`ctrl+p` или `ctrl+q` - остоединиться от контейнера
+
+**Запуск ранее созданного контейнера** \
+`docker start [container_id|container_name]`
