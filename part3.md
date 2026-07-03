@@ -23,7 +23,8 @@ int main() {
 `gcc server.c -o server -lfcgi`
 
 **Запуск сервера через spawn-fcgi** \
-`spawn-fcgi -p 8080 -n ./server`
+`spawn-fcgi -p 8080 -n ./server` \
+*! Не закрывать терминал, иначе сервер остановится*
 
 **или фоновый режим** \
 `spawn-fcgi -p 8080 ./server`
