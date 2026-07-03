@@ -38,20 +38,22 @@ FROM nginx:latest
 # Устанавливаем spawn-fcgi (нужен для запуска FastCGI-сервера)
 RUN apt-get update && apt-get install -y \
     spawn-fcgi \
+    libfcgi0ldbl \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем скомпилированный сервер из этапа builder
 COPY --from=builder /app/server /app/server
 
-# Копируем конфиг nginx
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+# Копируем конфиг nginx в контейнер
+COPY server/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Создаем скрипт для запуска обоих процессов
-RUN echo "spawn-fcgi -p 8080 /app/server &" > /app/start.sh && \
-    echo "nginx -g 'daemon off;'" >> /app/start.sh && \
-    chmod +x /app/start.sh
+RUN printf '#!/bin/sh\n\
+spawn-fcgi -p 8080 /app/server &\n\
+exec nginx -g "daemon off;"\n' > /app/start.sh \
+ && chmod +x /app/start.sh
 
-# Запускаем скрипт внутри докера
+# Запускаем скрипт
 CMD ["/app/start.sh"]
 ```
 
@@ -66,11 +68,12 @@ CMD ["/app/start.sh"]
 *COPY --from=builder /app/server /app/server* \
 Копирует скомпилированный бинарник из этапа builder
 
-*RUN echo "spawn-fcgi -p 8080 /app/server &" > /app/start.sh* \
-Создаем скрипт запуска /app/start.sh
+*RUN printf '#!/bin/sh\n\ ..* \
+Создаем скрипт запуска сервера в фоне и nginx на главном  /app/start.sh
 ```bash
+#!/bin/sh
 spawn-fcgi -p 8080 /app/server &
-nginx -g 'daemon off;'
+exec nginx -g "daemon off;"
 ```
 spawn-fcgi -p 8080 /app/server & — запускает сервер на порту 8080 в фоне (&) \
 nginx -g 'daemon off;' — запускает nginx на переднем плане \
@@ -93,5 +96,5 @@ nginx -g 'daemon off;' — запускает nginx на переднем пла
 ![docker build](./images/part4/2.png)
 
 
-**docker run -d --name my-container -p 81:80 -v $(pwd)/server/nginx:/etc/nginx/conf.d my-server:latest** \
+**docker run -d --name my-container -p 81:80 -v $(pwd)/server/nginx/nginx.conf:/etc/nginx/nginx.conf my-server:latest** \
 Запуск контейнера с маппингом папки ./nginx внутрь контейнера

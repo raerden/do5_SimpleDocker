@@ -20,18 +20,20 @@ FROM nginx:latest
 # Устанавливаем spawn-fcgi (нужен для запуска FastCGI-сервера)
 RUN apt-get update && apt-get install -y \
     spawn-fcgi \
+    libfcgi0ldbl \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем скомпилированный сервер из этапа builder
 COPY --from=builder /app/server /app/server
 
 # Копируем конфиг nginx
-COPY server/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY server/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Создаем скрипт для запуска обоих процессов
-RUN echo "spawn-fcgi -p 8080 /app/server &" > /app/start.sh && \
-    echo "nginx -g 'daemon off;'" >> /app/start.sh && \
-    chmod +x /app/start.sh
+RUN printf '#!/bin/sh\n\
+spawn-fcgi -p 8080 /app/server &\n\
+exec nginx -g "daemon off;"\n' > /app/start.sh \
+ && chmod +x /app/start.sh
 
 # Запускаем скрипт
 CMD ["/app/start.sh"]
