@@ -1,39 +1,49 @@
-# Этап 1: Сборка C-сервера
+# ======================
+# BUILD
+# ======================
 FROM ubuntu:22.04 AS builder
 
-# Устанавливаем компилятор и библиотеки
 RUN apt-get update && apt-get install -y \
     gcc \
     libfcgi-dev \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# Копируем исходник
-COPY ./server/server.c /app/server.c
+COPY server/server.c /app/server.c
 
-# Компилируем
 RUN gcc /app/server.c -o /app/server -lfcgi
 
 
-# Этап 2: Финальный образ
-FROM nginx:latest
+# ======================
+# RUNTIME
+# ======================
+FROM ubuntu:22.04
 
-# Устанавливаем spawn-fcgi (нужен для запуска FastCGI-сервера)
-RUN apt-get update && apt-get install -y \
-    spawn-fcgi \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx \
     libfcgi0ldbl \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+ && rm -rf /var/lib/apt/lists/*
 
-# Копируем скомпилированный сервер из этапа builder
+# non-root user
+# RUN useradd -r -u 1001 -s /usr/sbin/nologin appuser
+
 COPY --from=builder /app/server /app/server
 
-# Копируем конфиг nginx
-COPY ./server/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY server/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Создаем скрипт для запуска обоих процессов
+
+# start script (no spawn-fcgi!)
 RUN printf '#!/bin/sh\n\
-spawn-fcgi -p 8080 /app/server &\n\
-exec nginx -g "daemon off;"\n' > /app/start.sh \
- && chmod +x /app/start.sh
+set -e\n\
+/app/server &\n\
+nginx -g "daemon off;"\n' > /start.sh \
+ && chmod +x /start.sh
 
-# Запускаем скрипт
-CMD ["/app/start.sh"]
+HEALTHCHECK --interval=30s --timeout=3s \
+ CMD curl -fs http://localhost/ || exit 1
+
+# USER appuser
+
+CMD ["/start.sh"]
