@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем исходник
-COPY server/server.c /app/server.c
+COPY ./server/server.c /app/server.c
 
 # Компилируем
 RUN gcc /app/server.c -o /app/server -lfcgi
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /app/server /app/server
 
 # Копируем конфиг nginx
-COPY server/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./server/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Создаем скрипт для запуска обоих процессов
 RUN printf '#!/bin/sh\n\

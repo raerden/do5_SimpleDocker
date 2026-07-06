@@ -96,5 +96,26 @@ nginx -g 'daemon off;' — запускает nginx на переднем пла
 ![docker build](./images/part4/2.png)
 
 
-**docker run -d --name my-container -p 81:80 -v $(pwd)/server/nginx/nginx.conf:/etc/nginx/nginx.conf my-server:latest** \
+**docker run -d --name my-container -p 80:81 -v $(pwd)/server/nginx/nginx.conf:/etc/nginx/nginx.conf my-server:latest** \
 Запуск контейнера с маппингом папки ./nginx внутрь контейнера
+
+`docker run` - создание и запуск нового контейнера \
+`-d` - Detach mode (фоновый режим) \
+`--name my-container` - присвоить имя контейнеру \
+`-p 80:81` - Port mapping (проброс портов). \
+`-v ...` - Volume mount (монтирование тома / файла). \
+`$(pwd)/server/nginx/nginx.conf` - Источник на хосте (Source).
+`:/etc/nginx/nginx.conf` - Путь назначения в контейнере (Destination).
+`my-server:latest` - Имя и тег образа для сборки контейнера
+
+**Посмотреть какой процесс занимает 80й порт** \
+`sudo ss -tlnp | grep :80`
+
+**Остановить nginx на локальном хосте :80** \
+`systemctl stop nginx`
+
+**Перезапустить nginx в контейнере** 
+`docker exec my-container nginx -s reload`
+
+**Перезапустить контейнер** \
+`docker restart my-container`

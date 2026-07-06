@@ -30,7 +30,7 @@ int main() {
 `spawn-fcgi -p 8080 ./server`
 
 **проверить что сервер запущен** \
-`ps aux | grep server`
+`ps aux | grep server` \
 `netstat -tlnp | grep 8080`
 
 
