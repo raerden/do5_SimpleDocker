@@ -60,7 +60,8 @@
 ## Другие полезные команды
 
 **Дать контейнеру свое имя** \
-`docker run -d --name my-nginx nginx`
+`docker run -d --name my-nginx nginx` \
+-d - запустить в фоновом режиме
 
 **Просмотреть все контейнеры, даже остановленные** \
 `docker ps -a`
@@ -77,3 +78,6 @@
 
 **Запуск ранее созданного контейнера** \
 `docker start [container_id|container_name]`
+
+**Удалить докер образ**
+`docker rmi my-nginx`

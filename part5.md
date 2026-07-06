@@ -58,7 +58,7 @@ RUN gcc /app/server.c -o /app/server -lfcgi
 
 Созданный на первом этапе контейнер необходим только для компиляции итоговгоо бинарного файла "server". 
 
-## Этап 2: Финальный образ. Без nginx образа, раз он такой ошибочный. 
+## Этап 2: Финальный образ без nginx сборки. Раз она такая ошибочная. 
 
 дописываем в файл сборки src/Dockerfile второй этап
 ```docker
@@ -69,43 +69,85 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+#установить обновления. Не устанавливать рекомендованные пакеты
+#отключить неиспользуемые утилиты
+#очистить установочный кеш
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
+    spawn-fcgi \
     libfcgi0ldbl \
     curl \
+ && chmod u-s \
+    /usr/bin/passwd \
+    /usr/bin/su \
+    /usr/bin/mount \
+    /usr/bin/umount \
+    /usr/bin/chsh \
+    /usr/bin/chfn \
+    /usr/bin/newgrp \
+    /usr/bin/gpasswd \
+ && chmod g-s \
+    /usr/bin/chage \
+    /usr/bin/expiry \
+    /usr/sbin/unix_chkpwd \
+    /usr/sbin/pam_extrausers_chkpwd \
  && rm -rf /var/lib/apt/lists/*
 
-# non-root user
+# Добавляем non-root user
 RUN useradd -r -u 1001 -s /usr/sbin/nologin appuser
 
+# Скопировать из сборки билдер скомпилированный сервер
 COPY --from=builder /app/server /app/server
 
+# скопировать конфиг nginx с локалхоста.
 COPY server/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# start script (no spawn-fcgi!)
+# создать папки для работы nginx и дать права пользователю appuser
+# который буде запускать сервер и nginx
+RUN mkdir -p \
+        /var/cache/nginx \
+        /var/lib/nginx \
+        /var/log/nginx \
+        /run \
+	&& touch /run/nginx.pid \
+	&& chown -R appuser:appuser \
+        /app \
+        /etc/nginx \
+        /var/cache/nginx \
+        /var/lib/nginx \
+        /var/log/nginx \
+        /run/nginx.pid
+
+# Записываем скрипт запуска
 RUN printf '#!/bin/sh\n\
-set -e\n\
-/app/server &\n\
+spawn-fcgi -p 8080 /app/server &\n\
 nginx -g "daemon off;"\n' > /start.sh \
  && chmod +x /start.sh
 
+# Настроить проверку работы сервера
 HEALTHCHECK --interval=30s --timeout=3s \
  CMD curl -fs http://localhost/ || exit 1
 
+# Переключаемся на юзера appuser
 USER appuser
 
+# запускаем сервер и nginx
 CMD ["/start.sh"]
 ```
 
 *FROM ubuntu:22.04*
 Соберем nginx сервер самостоятельно с базовой Ubuntu
 
-*RUN apt-get update && apt-get install -y spawn-fcgi* \
+*RUN apt-get update && apt-get install -y --no-install-recommends* \
 Устанавливаем spawn-fcgi — утилиту для запуска FastCGI-серверов \
-Она нужна, чтобы запустить наш сервер на порту 8080
+Она нужна, чтобы запустить наш сервер на порту 8080 \
+отключаем ненужные утилиты
 
 *COPY --from=builder /app/server /app/server* \
 Копирует скомпилированный бинарник из этапа builder
+
+*RUN mkdir -p* \
+Создаем папки и файлы для работы nginx. Даем права appuser использовать их
 
 *RUN printf '#!/bin/sh\n\ ..* \
 Создаем скрипт запуска сервера в фоне и nginx на главном  /app/start.sh
@@ -127,25 +169,23 @@ nginx -g 'daemon off;' — запускает nginx на переднем пла
 
 ## Этап 3. Сборка образа и проверка
 
-**docker build -t my-server:latest .** \
-Запуск сборки по инструкциям Dockerfile в текущей директории
+**docker build -t my-server:clean .** \
+Запуск сборки по инструкциям Dockerfile в текущей директории \
+проверка dockle \
+проверка curl localhost/
 
-![docker build](./images/part4/1.png)
+![docker build](./images/part5/3.png)
+![docker build](./images/part5/4.png)
 
-![docker build](./images/part4/2.png)
 
-
-**docker run -d --name my-container -p 80:81 -v $(pwd)/server/nginx/nginx.conf:/etc/nginx/nginx.conf my-server:latest** \
+**docker run -d --name my-server -p 80:81 -v $(pwd)/server/nginx/nginx.conf:/etc/nginx/nginx.conf my-server:clean** \
 Запуск контейнера с маппингом папки ./nginx внутрь контейнера
 
-`docker run` - создание и запуск нового контейнера \
-`-d` - Detach mode (фоновый режим) \
-`--name my-container` - присвоить имя контейнеру \
-`-p 80:81` - Port mapping (проброс портов). \
-`-v ...` - Volume mount (монтирование тома / файла). \
-`$(pwd)/server/nginx/nginx.conf` - Источник на хосте (Source).
-`:/etc/nginx/nginx.conf` - Путь назначения в контейнере (Destination).
-`my-server:latest` - Имя и тег образа для сборки контейнера
+**dockle my-server** \
+проверка Dockle на безопасность и ошибки
+
+**curl -s localhost && curl -s localhost/status** \
+проверить работу сервера и nginx статуса
 
 **Посмотреть какой процесс занимает 80й порт** \
 `sudo ss -tlnp | grep :80`
