@@ -171,11 +171,10 @@ nginx -g 'daemon off;' — запускает nginx на переднем пла
 
 **docker build -t my-server:clean .** \
 Запуск сборки по инструкциям Dockerfile в текущей директории \
-проверка dockle \
-проверка curl localhost/
-
 ![docker build](./images/part5/3.png)
 ![docker build](./images/part5/4.png)
+проверка dockle \
+проверка curl localhost/
 
 
 **docker run -d --name my-server -p 80:81 -v $(pwd)/server/nginx/nginx.conf:/etc/nginx/nginx.conf my-server:clean** \
