@@ -6,32 +6,38 @@
 ```docker
 services:
 
+  # Собираем первый контейнер 'app'
   app:
     build: 
       context: .
       dockerfile: Dockerfile
+  # Образ для контейнера
     image: my-server:clean
-    #порты с хоста не мапим. Сервер слушает только 81 порт внутри образа.
+    # Порты с хоста не мапим. Сервер слушает только 81 порт внутри образа.
+  # Подключить контейнер к сети 'app-network'
     networks:
       - app-network
+  # Будет перезапускать контейнер пока не остановить в его ручную
     restart: unless-stopped
 
-  
+  # Собираем второй контейнер 'nginx'
   proxy:
     image: nginx:latest
     ports:
-      #мапим 80й порт в контейнер nginx на 8080
+      # Мапим 80й порт локальной машины в контейнер nginx на порт 8080
       - "80:8080"
     volumes:
-      #в конфиге стоит проксирование listen 8080 на proxy_pass http://app:81 в контейнер app
+      # В конфиге для контейнера nginx стоит проксирование listen 8080
+    # и перенаправление в первый контейнер proxy_pass http://app:81 через локальный DNS
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  # Порядок запуска. Сначала будет запущен app, только потом nginx
     depends_on:
       - app
     networks:
       - app-network
     restart: unless-stopped
 
-
+# Создаем виртуальную локальную сеть для контейнеров
 networks:
   app-network:
     driver: bridge
