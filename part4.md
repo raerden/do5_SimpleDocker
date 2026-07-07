@@ -114,7 +114,7 @@ nginx -g 'daemon off;' — запускает nginx на переднем пла
 **Остановить nginx на локальном хосте :80** \
 `systemctl stop nginx`
 
-**Перезапустить nginx в контейнере** 
+**Перезапустить nginx в контейнере** \
 `docker exec my-container nginx -s reload`
 
 **Перезапустить контейнер** \
